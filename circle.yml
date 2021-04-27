@@ -51,7 +51,7 @@ executors:
   cy-doc:
     docker:
       - image: cypress/browsers:node14.16.0-chrome89-ff77
-    resource_class: xlarge
+    resource_class: 2xlarge
     environment:
       PLATFORM: linux
 
@@ -60,7 +60,7 @@ executors:
     docker:
       - image: cypress/browsers:node14.16.0-chrome89-ff77
         user: node
-    resource_class: xlarge
+    resource_class: 2xlarge
     environment:
       PLATFORM: linux
 
