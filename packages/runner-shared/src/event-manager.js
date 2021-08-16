@@ -125,7 +125,7 @@ export const eventManager = {
 
     _.each(socketToDriverEvents, (event) => {
       ws.on(event, (...args) => {
-        Cypress.emit(event, ...args)
+        Cypress && Cypress.emit(event, ...args)
       })
     })
 
