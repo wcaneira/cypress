@@ -24,15 +24,18 @@ interface IFramesProps {
   state: State
   eventManager: typeof EventManager
   config: Cypress.RuntimeConfigOptions
+  specContent: HTMLDivElement
 }
 
 export const Iframes = namedObserver('Iframes', ({
   config,
   state,
   eventManager,
+  specContent,
 }: IFramesProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const autIframe = useRef(new AutIframe(config))
+  const sc = specContent
 
   const _toggleSnapshotHighlights = (snapshotProps) => {
     state.setShowSnapshotHighlight(!state.snapshot.showingHighlights)
@@ -100,6 +103,10 @@ export const Iframes = namedObserver('Iframes', ({
     return $autIframe
   }
 
+  const afterHighlight = () => {
+    sc.scrollTo({ top: 0 })
+  }
+
   useEffect(() => {
     eventManager.on('visit:failed', autIframe.current.showVisitFailure)
     eventManager.on('before:screenshot', autIframe.current.beforeScreenshot)
@@ -133,7 +140,10 @@ export const Iframes = namedObserver('Iframes', ({
     const iframeModel = new IframeModel({
       state,
       restoreDom: autIframe.current.restoreDom,
-      highlightEl: autIframe.current.highlightEl,
+      highlightEl: (...args) => {
+        autIframe.current.highlightEl(...args)
+        afterHighlight()
+      },
       detachDom: autIframe.current.detachDom,
       snapshotControls: (snapshotProps) => (
         <SnapshotControls

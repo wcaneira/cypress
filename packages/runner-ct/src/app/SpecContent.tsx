@@ -30,6 +30,8 @@ interface SpecContentWrapperProps {
 }
 
 export const SpecContent = namedObserver('SpecContent', (props: SpecContentProps) => {
+  const specContent = React.useRef<HTMLDivElement>(null)
+
   function updatePluginsHeight (height: number) {
     props.state.updatePluginsHeight(height)
   }
@@ -52,19 +54,21 @@ export const SpecContent = namedObserver('SpecContent', (props: SpecContentProps
             : props.state.isAnyPluginToShow ? PLUGIN_BAR_HEIGHT : 0)}
         onChange={animationFrameDebounce(updatePluginsHeight)}
       >
-        <div className={cs(
-          'runner',
-          styles.runnerCt,
-          styles.runner,
-          {
-            [styles.screenshotting]: props.state.screenshotting,
-            [styles.noSpecAut]: !props.state.spec,
-          },
-        )}
+        <div
+          ref={specContent}
+          className={cs(
+            'runner',
+            styles.runnerCt,
+            styles.runner,
+            {
+              [styles.screenshotting]: props.state.screenshotting,
+              [styles.noSpecAut]: !props.state.spec,
+            },
+          )}
         >
           <Header {...props} runner='component' />
-          {props.state.spec
-            ? <Iframes {...props} />
+          {props.state.spec && specContent.current
+            ? <Iframes {...props} specContent={specContent.current} />
             : (
               <NoSpec>
                 <KeyboardHelper />
