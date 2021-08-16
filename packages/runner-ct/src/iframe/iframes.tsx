@@ -184,9 +184,6 @@ export const Iframes = namedObserver('Iframes', ({
 
   return (
     <div
-      style={{
-        display: state.screenshotting ? 'inherit' : 'grid',
-      }}
       className={cs('iframes-ct-container', {
         'has-error': !!scriptError,
         'iframes-ct-container-screenshotting': screenshotting,
