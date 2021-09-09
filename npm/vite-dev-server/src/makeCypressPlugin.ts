@@ -70,6 +70,11 @@ export const makeCypressPlugin = (
       debug('transformIndexHtml with base', base)
 
       return [
+        {
+          tag: 'div',
+          injectTo: 'body',
+          attrs: { id: '__cy_root' },
+        },
         // load the script at the end of the body
         // script has to be loaded when the vite client is connected
         {
