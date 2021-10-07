@@ -22,15 +22,19 @@ Create React App projects are Webpack based; that's why we are installing the re
 yarn add cypress @cypress/react @cypress/webpack-dev-server --dev
 ```
 
-Next, create a `cypress.json` with some basic configuration:
+Next, create a `cypress/cypress.config.js` file with some basic configuration:
 
-```json
-{
-  "component": {
-    "testFiles": "**/*.test.{js,ts,jsx,tsx}",
-    "componentFolder": "src"
-  }
-}
+```js
+const { defineConfig } = require('cypress')
+
+const devServer = require('@cypress/react/plugins/craco')
+
+module.exports = defineConfig({
+  component: {
+    testFiles: '**/*.test.{js,ts,jsx,tsx}',
+    componentFolder: 'src',
+  },
+})
 ```
 
 Here we are adding some Component Testing specific options, hence the `"component"` key. `"componentFolder"` is where all the components and tests are located, and `"testFiles"` is the pattern to search for test files.
