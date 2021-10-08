@@ -39,4 +39,4 @@ Notice that Node Sass is a binary dependency, thus we need to run it using the s
 }
 ```
 
-To bundle code using the same [webpack.config.js](webpack.config.js) file, we point at it from [cypress/plugins/index.js](cypress/plugins/index.js) file.
+To bundle code using the same [webpack.config.js](webpack.config.js) file, we point at it from the [Cypress configuration](./cypress.config.js).

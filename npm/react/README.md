@@ -68,28 +68,35 @@ You can use our command line wizard to give you instructions on configuring this
 npx create-cypress-tests --component-tests
 ```
 
-Or continue with manual installation in the plugin file
+Or continue with manual installation in the Cypress configuration.
 
 1. Tell Cypress how your React application is transpiled or bundled (using Webpack), so Cypress can load your components. For example, if you use `react-scripts` (even after ejecting) do:
 
 ```js
-// cypress/plugins/index.js
-module.exports = (on, config) => {
-  require('@cypress/react/plugins/react-scripts')(on, config)
-  // IMPORTANT to return the config object
-  // with the any changed environment variables
-  return config
-}
+const { defineConfig } = require('cypress')
+const { devServer } = require('@cypress/react/plugins/react-scripts');
+
+module.exports = defineConfig({
+  component: {
+    devServer
+  }
+})
 ```
 
 See [Recipes](./docs/recipes.md) for more examples.
 
-2. You can specify where component spec files are located. For example, to have them located in `src` folder use:
+2. You can specify where component spec files are located. For example, to have them located in `src` folder use this in the component runner specific options in the Cypress configuration:
 
-```json
-{
-  "componentFolder": "src"
-}
+```js
+const { defineConfig } = require('cypress')
+const { devServer } = require('@cypress/react/plugins/react-scripts');
+
+module.exports = defineConfig({
+  component: {
+    devServer,
+    componentFolder: "src", // <- component spec files are here
+  }
+})
 ```
 
 ## API

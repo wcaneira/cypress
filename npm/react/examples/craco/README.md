@@ -3,15 +3,20 @@ This is an example project created using [CRACO](https://github.com/gsoft-inc/cr
 Use the plugin:
 
 ```js
-// cypress/plugins/index.js
+// cypress/cypress.config.js
+const { defineConfig } = require('cypress')
 
 // import your craco.config.js
 const cracoConfig = require('../../craco.config.js')
 const devServer = require('@cypress/react/plugins/craco')
 
-module.exports = (on, config) => {
-  devServer(on, config, cracoConfig)
+module.exports = defineConfig({
+  component: {
+		setupNodeEvents(on, config) {
+      devServer(on, config, cracoConfig)
 
-  return config
-}
+      return config
+		}
+  }
+})
 ```
