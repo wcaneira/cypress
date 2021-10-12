@@ -9,11 +9,11 @@ const devServer = require('@cypress/react/plugins/react-scripts')
 module.exports = defineConfig({
   video: false,
   fixturesFolder: false,
-  testFiles: '**/*cy-spec.js',
   viewportWidth: 500,
   viewportHeight: 800,
-  componentFolder: 'cypress/component',
   component: {
+    componentFolder: 'cypress/component',
+    testFiles: '**/*cy-spec.js',
     setupNodeEvents (on, config) {
       devServer(on, config)
 

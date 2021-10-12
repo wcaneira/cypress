@@ -13,11 +13,11 @@ const {
 module.exports = defineConfig({
   video: false,
   fixturesFolder: false,
-  testFiles: "**/*cy-spec.js",
   viewportWidth: 1000,
   viewportHeight: 1000,
-  componentFolder: "src",
   component: {
+    componentFolder: "src",
+    testFiles: "**/*cy-spec.js",
     setupNodeEvents(on, config) {
       addMatchImageSnapshotPlugin(on, config);
       devServer(on, config);

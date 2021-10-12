@@ -11,11 +11,11 @@ const happoTask = require('happo-cypress/task')
 
 module.exports = defineConfig({
   video: false,
-  testFiles: '**/*cy-spec.js',
   viewportWidth: 400,
   viewportHeight: 700,
-  componentFolder: 'src',
   component: {
+    componentFolder: 'src',
+    testFiles: '**/*cy-spec.js',
     setupNodeEvents (on, config) {
       on('task', happoTask)
       devServer(on, config)

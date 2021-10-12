@@ -9,15 +9,15 @@ const devServer = require('@cypress/react/plugins/load-webpack')
 module.exports = defineConfig({
   video: false,
   fixturesFolder: false,
-  testFiles: '**/*spec.*',
   viewportWidth: 500,
   viewportHeight: 500,
-  componentFolder: 'src',
   nodeVersion: 'system',
   env: {
     coverage: true,
   },
   component: {
+    componentFolder: 'src',
+    testFiles: '**/*spec.*',
     setupNodeEvents (on, config) {
       devServer(on, config, {
         webpackFilename: 'webpack.config.js',

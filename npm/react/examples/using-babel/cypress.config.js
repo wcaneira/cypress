@@ -10,11 +10,11 @@ const devServer = require('@cypress/react/plugins/babel')
 module.exports = defineConfig({
   video: false,
   fixturesFolder: false,
-  testFiles: '**/*spec.js',
   viewportWidth: 500,
   viewportHeight: 500,
-  componentFolder: 'src',
   component: {
+    componentFolder: 'src',
+    testFiles: '**/*spec.js',
     setupNodeEvents (on, config) {
       devServer(on, config)
 

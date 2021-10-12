@@ -8,16 +8,14 @@ const _ = require('lodash')
 module.exports = defineConfig({
   video: true,
   projectId: 'jq5xpp',
-  component: {
-    testFiles: '**/*.spec.{js,ts,jsx,tsx}',
-    componentFolder: 'src',
-  },
   env: {
     'cypress-react-selector': {
       root: '#__cy_root',
     },
   },
   component: {
+    componentFolder: 'src',
+    testFiles: '**/*.spec.{js,ts,jsx,tsx}',
     setupNodeEvents (on, config) {
       const map = _.map([4, 8], (n) => n * 2)
 

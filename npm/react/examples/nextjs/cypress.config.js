@@ -4,15 +4,15 @@ const devServer = require('@cypress/react/plugins/next')
 
 module.exports = defineConfig({
   video: false,
-  testFiles: '**/*.spec.{js,jsx}',
   viewportWidth: 500,
   viewportHeight: 800,
   experimentalFetchPolyfill: true,
-  componentFolder: 'cypress/components',
   env: {
     coverage: true,
   },
   component: {
+    componentFolder: 'cypress/components',
+    testFiles: '**/*.spec.{js,jsx}',
     setupNodeEvents (on, config) {
       devServer(on, config)
 

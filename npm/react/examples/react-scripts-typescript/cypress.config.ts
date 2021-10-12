@@ -7,12 +7,9 @@ export default defineConfig({
   testFiles: '**/*cy-spec.tsx',
   viewportWidth: 500,
   viewportHeight: 800,
-  componentFolder: 'src',
-  e2e: {
-    setupNodeEvents (on, config) {
-      devServer(on, config)
-
-      return config
-    },
+  component: {
+    devServer,
+    componentFolder: 'src',
+    testFiles: '**/*cy-spec.tsx',
   },
 })
