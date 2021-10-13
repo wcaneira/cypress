@@ -585,10 +585,10 @@ This plugin uses `babel-plugin-istanbul` to automatically instrument `.js` and `
 
 If you want to disable code coverage instrumentation and reporting, use `--env coverage=false` or `CYPRESS_coverage=false` or set in your Cypress configuration.
 
-```json
+```js
 {
-  "env": {
-    "coverage": false
+  env: {
+    coverage: false
   }
 }
 ```

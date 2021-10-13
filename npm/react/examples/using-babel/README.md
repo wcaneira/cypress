@@ -31,18 +31,18 @@ npm test
 
 ## Specs
 
-See spec files [src/\*.spec.js](src). The specs are bundled using [.babelrc](.babelrc) settings via the [Cypress configuration](./cypress.config.js) file that includes file devServer.
+See spec files [src/\*.spec.js](src). The specs are bundled using [.babelrc](.babelrc) settings via the [Cypress configuration](./cypress.config.js) that includes the imported devServer function.
 
 ```js
 // let's bundle spec files and the components they include using
 // the same bundling settings as the project by loading .babelrc
-const devServer = require('@cypress/react/plugins/babel')
+const { devServer } = require('@cypress/react/plugins/babel')
 
-module.exports = (on, config) => {
-  devServer(on, config)
-  // IMPORTANT to return the config object
-  // with the any changed environment variables
-  return config
+module.exports = defineConfig({
+  component: {
+      devServer
+    }
+  }
 }
 ```
 

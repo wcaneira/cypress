@@ -85,7 +85,7 @@ module.exports = defineConfig({
 
 See [Recipes](./docs/recipes.md) for more examples.
 
-2. You can specify where component spec files are located. For example, to have them located in `src` folder use this in the component runner specific options in the Cypress configuration:
+2. You can specify where component spec files are located. For example, to have them located in the `src` folder use this property in the component runner configuration object:
 
 ```js
 const { defineConfig } = require('cypress')

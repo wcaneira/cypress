@@ -6,7 +6,13 @@ const { defineConfig } = require('cypress')
 // https://github.com/bahmutov/cypress-react-unit-test#install
 const devServer = require('@cypress/react/plugins/react-scripts')
 
- module.exports = defineConfig({
+const getApplitoolsWrappedSetupFn = (exports) => {
+  const placeholderModule = { exports }
+  require('@applitools/eyes-cypress')(placeholderModule)
+  return placeholderModule.exports
+}
+
+module.exports = defineConfig({
   video: false,
   fixturesFolder: false,
   viewportWidth: 1000,
@@ -15,17 +21,9 @@ const devServer = require('@cypress/react/plugins/react-scripts')
     coverage: false
   },
   component: {
-    componentFolder: "src",
-    testFiles: "**/*spec.js",
-		setupNodeEvents(on, config) {
-      devServer(on, config)
-
-       // IMPORTANT to return the config object
-       // with the any changed environment variables
-       return config
-		}
-  }
- })
-
-// @ts-ignore
-require('@applitools/eyes-cypress')(module)
+    devServer,
+    setupNodeEvents: getApplitoolsWrappedSetupFn((on, config) => {
+      // component node events setup code
+    })
+  },
+})

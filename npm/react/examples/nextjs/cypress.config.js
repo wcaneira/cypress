@@ -1,6 +1,5 @@
 const { defineConfig } = require('cypress')
-
-const devServer = require('@cypress/react/plugins/next')
+const { devServer } = require('@cypress/react/plugins/next')
 
 module.exports = defineConfig({
   video: false,
@@ -11,12 +10,8 @@ module.exports = defineConfig({
     coverage: true,
   },
   component: {
+    devServer,
     componentFolder: 'cypress/components',
     testFiles: '**/*.spec.{js,jsx}',
-    setupNodeEvents (on, config) {
-      devServer(on, config)
-
-      return config
-    },
   },
 })
