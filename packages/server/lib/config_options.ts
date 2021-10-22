@@ -1,4 +1,26 @@
-const v = require('./util/validation')
+// const v = require('./util/validation')
+const v = require('@packages/config/src/validationUtils')
+
+// almost the validate function but it's cross-checking the default values
+const isValidConfig = (key, config) => {
+  const status = v.isPlainObject(key, config)
+
+  if (status !== true) {
+    return status
+  }
+
+  for (const rule of options) {
+    if (rule.name in config && rule.validation) {
+      const status = rule.validation(`${key}.${rule.name}`, config[rule.name])
+
+      if (status !== true) {
+        return status
+      }
+    }
+  }
+
+  return true
+}
 
 // NOTE:
 // If you add/remove/change a config value, make sure to update the following
@@ -44,7 +66,7 @@ export const options = [
     name: 'component',
     // runner-ct overrides
     defaultValue: {},
-    validation: v.isValidConfig,
+    validation: isValidConfig,
   }, {
     name: 'componentFolder',
     defaultValue: 'cypress/component',
@@ -74,7 +96,7 @@ export const options = [
     name: 'e2e',
     // e2e runner overrides
     defaultValue: {},
-    validation: v.isValidConfig,
+    validation: isValidConfig,
   }, {
     name: 'env',
     validation: v.isPlainObject,

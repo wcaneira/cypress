@@ -1,4 +1,4 @@
-const v = require('./validation')
+const v = require('./validationUtils')
 
 // almost the validate function but it's cross-checking the default values
 const isValidConfig = (key, config) => {
