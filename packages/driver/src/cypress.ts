@@ -8,6 +8,7 @@ import Promise from 'bluebird'
 import sinon from 'sinon'
 import fakeTimers from '@sinonjs/fake-timers'
 import debugFn from 'debug'
+import { validate } from '@packages/config'
 
 import browserInfo from './cypress/browser'
 import $scriptUtils from './cypress/script_utils'
@@ -142,7 +143,12 @@ class $Cypress {
 
     this.state = $SetterGetter.create({})
     this.originalConfig = _.cloneDeep(config)
-    this.config = $SetterGetter.create(config)
+    this.config = $SetterGetter.create(config, (config) => {
+      validate(config, (errMsg) => {
+        $errUtils.throwErr(`CONFIG_ERROR: ${errMsg}`)
+      })
+    })
+
     this.env = $SetterGetter.create(env)
     this.getTestRetries = function () {
       const testRetries = this.config('retries')

@@ -11,7 +11,7 @@ const reset = (state = {}) => {
 
 // a basic object setter / getter class
 export default {
-  create: (state = {}) => {
+  create: (state = {}, validate) => {
     const get = (key?) => {
       if (key) {
         return state[key]
@@ -32,6 +32,8 @@ export default {
         obj[key] = value
         ret = value
       }
+
+      validate && validate(obj)
 
       _.extend(state, obj)
 
