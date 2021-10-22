@@ -1,5 +1,46 @@
 const v = require('./validationUtils')
 
+// NOTE:
+// If you add/remove/change a config value, make sure to update the following
+// - cli/types/index.d.ts (including allowed config options on TestOptions)
+// - cypress.schema.json
+//
+// Add options in alphabetical order for better readability
+
+interface ResolvedConfigOption {
+  name: string
+  defaultValue: any
+  validation: Function
+  isFolder?: boolean
+  isExperimental?: boolean
+}
+
+interface RuntimeConfigOption {
+  name: string
+  defaultValue: any
+  validation: Function
+  isInternal?: boolean
+}
+
+interface BreakingOption {
+  /**
+   * The non-passive configuration option.
+   */
+  name: string
+  /**
+   * String to summarize the error messaging that is logged.
+   */
+  errorKey: string
+  /**
+   * The new configuration key that is replacing the existing configuration key.
+   */
+  newName?: string
+  /**
+   * Whether to log the error message as a warning instead of throwing an error.
+   */
+  isWarning?: boolean
+}
+
 // almost the validate function but it's cross-checking the default values
 const isValidConfig = (key, config) => {
   const status = v.isPlainObject(key, config)
@@ -21,22 +62,13 @@ const isValidConfig = (key, config) => {
   return true
 }
 
-// NOTE:
-// If you add/remove/change a config value, make sure to update the following
-// - cli/types/index.d.ts (including allowed config options on TestOptions)
-// - cypress.schema.json
-//
-// Add options in alphabetical order for better readability
-
-export const options = [
+// TODO - add boolean attribute to indicate read-only / static vs mutable options
+// that can be updated during test executions
+const resolvedOptions: Array<ResolvedConfigOption> = [
   {
     name: 'animationDistanceThreshold',
     defaultValue: 5,
     validation: v.isNumber,
-  }, {
-    name: 'autoOpen',
-    defaultValue: false,
-    isInternal: true,
   }, {
     name: 'baseUrl',
     defaultValue: null,
@@ -46,17 +78,9 @@ export const options = [
     defaultValue: null,
     validation: v.isStringOrArrayOfStrings,
   }, {
-    name: 'browsers',
-    defaultValue: [],
-    validation: v.isValidBrowserList,
-  }, {
     name: 'chromeWebSecurity',
     defaultValue: true,
     validation: v.isBoolean,
-  }, {
-    name: 'clientRoute',
-    defaultValue: '/__/',
-    isInternal: true,
   }, {
     name: 'clientCertificates',
     defaultValue: [],
@@ -72,20 +96,9 @@ export const options = [
     validation: v.isStringOrFalse,
     isFolder: true,
   }, {
-    name: 'configFile',
-    defaultValue: 'cypress.json',
-    validation: v.isStringOrFalse,
-    // not truly internal, but can only be set via cli,
-    // so we don't consider it a "public" option
-    isInternal: true,
-  }, {
     name: 'defaultCommandTimeout',
     defaultValue: 4000,
     validation: v.isNumber,
-  }, {
-    name: 'devServerPublicPathRoute',
-    defaultValue: '/__cypress/src',
-    isInternal: true,
   }, {
     name: 'downloadsFolder',
     defaultValue: 'cypress/downloads',
@@ -98,6 +111,7 @@ export const options = [
     validation: isValidConfig,
   }, {
     name: 'env',
+    defaultValue: {},
     validation: v.isPlainObject,
   }, {
     name: 'execTimeout',
@@ -114,17 +128,17 @@ export const options = [
     validation: v.isBoolean,
     isExperimental: true,
   }, {
+    name: 'experimentalSessionSupport',
+    defaultValue: false,
+    validation: v.isBoolean,
+    isExperimental: true,
+  }, {
     name: 'experimentalSourceRewriting',
     defaultValue: false,
     validation: v.isBoolean,
     isExperimental: true,
   }, {
     name: 'experimentalStudio',
-    defaultValue: false,
-    validation: v.isBoolean,
-    isExperimental: true,
-  }, {
-    name: 'experimentalSessionSupport',
     defaultValue: false,
     validation: v.isBoolean,
     isExperimental: true,
@@ -139,9 +153,6 @@ export const options = [
     validation: v.isStringOrFalse,
     isFolder: true,
   }, {
-    name: 'hosts',
-    defaultValue: null,
-  }, {
     name: 'ignoreTestFiles',
     defaultValue: '*.hot-update.js',
     validation: v.isStringOrArrayOfStrings,
@@ -155,21 +166,9 @@ export const options = [
     validation: v.isString,
     isFolder: true,
   }, {
-    name: 'isTextTerminal',
-    defaultValue: false,
-    isInternal: true,
-  }, {
-    name: 'morgan',
-    defaultValue: true,
-    isInternal: true,
-  }, {
     name: 'modifyObstructiveCode',
     defaultValue: true,
     validation: v.isBoolean,
-  }, {
-    name: 'namespace',
-    defaultValue: '__cypress',
-    isInternal: true,
   }, {
     name: 'nodeVersion',
     defaultValue: 'default',
@@ -198,6 +197,7 @@ export const options = [
   }, {
     name: 'redirectionLimit',
     defaultValue: 20,
+    validation: v.isNumber,
   }, {
     name: 'reporter',
     defaultValue: 'spec',
@@ -205,18 +205,19 @@ export const options = [
   }, {
     name: 'reporterOptions',
     defaultValue: null,
-  }, {
-    name: 'reporterRoute',
-    defaultValue: '/__cypress/reporter',
-    isInternal: true,
+    validation: v.isPlainObject,
   }, {
     name: 'requestTimeout',
     defaultValue: 5000,
     validation: v.isNumber,
   }, {
     name: 'resolvedNodePath',
+    defaultValue: null,
+    validation: v.isString,
   }, {
     name: 'resolvedNodeVersion',
+    defaultValue: null,
+    validation: v.isString,
   }, {
     name: 'responseTimeout',
     defaultValue: 30000,
@@ -238,21 +239,9 @@ export const options = [
     validation: v.isStringOrFalse,
     isFolder: true,
   }, {
-    name: 'socketId',
-    defaultValue: null,
-    isInternal: true,
-  }, {
-    name: 'socketIoRoute',
-    defaultValue: '/__socket.io',
-    isInternal: true,
-  }, {
     name: 'scrollBehavior',
     defaultValue: 'top',
     validation: v.isOneOf('center', 'top', 'bottom', 'nearest', false),
-  }, {
-    name: 'socketIoCookie',
-    defaultValue: '__socket.io',
-    isInternal: true,
   }, {
     name: 'supportFile',
     defaultValue: 'cypress/support',
@@ -260,6 +249,8 @@ export const options = [
     isFolder: true,
   }, {
     name: 'supportFolder',
+    defaultValue: false,
+    validation: v.isStringOrFalse,
     isFolder: true,
   }, {
     name: 'taskTimeout',
@@ -273,10 +264,6 @@ export const options = [
     name: 'trashAssetsBeforeRuns',
     defaultValue: true,
     validation: v.isBoolean,
-  }, {
-    name: 'unitFolder',
-    isFolder: true,
-    isInternal: true,
   }, {
     name: 'userAgent',
     defaultValue: null,
@@ -314,14 +301,93 @@ export const options = [
     name: 'watchForFileChanges',
     defaultValue: true,
     validation: v.isBoolean,
+  },
+]
+
+const runtimeOptions: Array<RuntimeConfigOption> = [
+  {
+    name: 'autoOpen',
+    defaultValue: false,
+    validation: v.isBoolean,
+    isInternal: true,
+  }, {
+    name: 'browsers',
+    defaultValue: [],
+    validation: v.isValidBrowserList,
+  }, {
+    name: 'clientRoute',
+    defaultValue: '/__/',
+    validation: v.isString,
+    isInternal: true,
+  }, {
+    name: 'configFile',
+    defaultValue: 'cypress.json',
+    validation: v.isStringOrFalse,
+    // not truly internal, but can only be set via cli,
+    // so we don't consider it a "public" option
+    isInternal: true,
+  }, {
+    name: 'devServerPublicPathRoute',
+    defaultValue: '/__cypress/src',
+    validation: v.isString,
+    isInternal: true,
+  }, {
+    name: 'hosts',
+    defaultValue: null,
+    validation: v.isPlainObject,
+  }, {
+    name: 'isTextTerminal',
+    defaultValue: false,
+    validation: v.isBoolean,
+    isInternal: true,
+  }, {
+    name: 'morgan',
+    defaultValue: true,
+    validation: v.isBoolean,
+    isInternal: true,
+  }, {
+    name: 'modifyObstructiveCode',
+    defaultValue: true,
+    validation: v.isBoolean,
+  }, {
+    name: 'namespace',
+    defaultValue: '__cypress',
+    validation: v.isString,
+    isInternal: true,
+  }, {
+    name: 'reporterRoute',
+    defaultValue: '/__cypress/reporter',
+    validation: v.isString,
+    isInternal: true,
+  }, {
+    name: 'socketId',
+    defaultValue: null,
+    validation: v.isString,
+    isInternal: true,
+  }, {
+    name: 'socketIoCookie',
+    defaultValue: '__socket.io',
+    validation: v.isString,
+    isInternal: true,
+  }, {
+    name: 'socketIoRoute',
+    defaultValue: '/__socket.io',
+    validation: v.isString,
+    isInternal: true,
   }, {
     name: 'xhrRoute',
     defaultValue: '/xhrs/',
+    validation: v.isString,
     isInternal: true,
   },
 ]
 
-export const breakingOptions = [
+export const options: Array<ResolvedConfigOption|RuntimeConfigOption> = [
+  ...resolvedOptions,
+  ...runtimeOptions,
+]
+
+export const breakingOptions: Array<BreakingOption> = [
   {
     name: 'blacklistHosts',
     errorKey: 'RENAMED_CONFIG_OPTION',

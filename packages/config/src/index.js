@@ -28,10 +28,6 @@ module.exports = {
     return _.pick(obj, propertyNames)
   },
 
-  getBreakingKeys: () => {
-    return breakingKeys
-  },
-
   getDefaultValues: () => {
     return defaultValues
   },
