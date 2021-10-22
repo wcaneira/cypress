@@ -17,8 +17,6 @@ import findSystemNode from './util/find_system_node'
 const debug = Debug('cypress:server:config')
 
 import { options, breakingOptions } from '@packages/config/src/options'
-// import { options, breakingOptions } from '../../config/src/options'
-// import { options, breakingOptions } from './config_options'
 import { getProcessEnvVars } from './util/config'
 
 export const RESOLVED_FROM = ['plugin', 'env', 'default', 'runtime', 'config'] as const

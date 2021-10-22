@@ -2852,7 +2852,7 @@ declare namespace Cypress {
      */
     version: string
 
-    // Internal or Unlisted at server/lib/config_options
+    // Internal or Unlisted at packages/config/src/options
     autoOpen: boolean
     browserUrl: string
     clientRoute: string
