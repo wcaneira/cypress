@@ -3,9 +3,10 @@ const la = require('lazy-ass')
 const is = require('check-more-types')
 const path = require('path')
 const debug = require('debug')('cypress:server:args')
+const configUtils = require('@packages/config')
+
 const minimist = require('minimist')
 const coerceUtil = require('./coerce')
-const configUtil = require('../config')
 const proxyUtil = require('./proxy')
 const errors = require('../errors')
 
@@ -303,7 +304,7 @@ module.exports = {
     }
 
     // get a list of the available config keys
-    const configKeys = configUtil.getConfigKeys()
+    const configKeys = configUtils.getPublicConfigKeys()
 
     // and if any of our options match this
     const configValues = _.pick(options, configKeys)

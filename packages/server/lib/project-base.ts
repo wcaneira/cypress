@@ -3,6 +3,7 @@ import Debug from 'debug'
 import EE from 'events'
 import _ from 'lodash'
 import path from 'path'
+import configUtils from '@packages/config'
 
 import browsers from './browsers'
 import pkg from '@packages/root'
@@ -361,11 +362,11 @@ export class ProjectBase<TServer extends ServerE2E | ServerCt> extends EE {
 
     process.chdir(localCwd)
 
-    const config = this.getConfig()
+    const cfg = this.getConfig()
 
-    if (config.isTextTerminal || !config.experimentalInteractiveRunEvents) return
+    if (cfg.isTextTerminal || !cfg.experimentalInteractiveRunEvents) return
 
-    return runEvents.execute('after:run', config)
+    return runEvents.execute('after:run', cfg)
   }
 
   _onError<Options extends Record<string, any>> (err: Error, options: Options) {
@@ -406,11 +407,9 @@ export class ProjectBase<TServer extends ServerE2E | ServerCt> extends EE {
   }
 
   async initializePlugins (cfg, options) {
-    // only init plugins with the
-    // allowed config values to
-    // prevent tampering with the
-    // internals and breaking cypress
-    const allowedCfg = config.allowed(cfg)
+    // only init plugins with the allowed config values to
+    // prevent tampering with the internals and breaking cypress
+    const allowedCfg = configUtils.allowed(cfg)
 
     const modifiedCfg = await plugins.init(allowedCfg, {
       projectRoot: this.projectRoot,

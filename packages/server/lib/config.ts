@@ -1,8 +1,11 @@
 import _ from 'lodash'
+import Debug from 'debug'
 import R from 'ramda'
 import path from 'path'
 import Promise from 'bluebird'
 import deepDiff from 'return-deep-diff'
+import configUtils from '@packages/config'
+import { options } from '@packages/config/src/options'
 
 import errors from './errors'
 import scaffold from './scaffold'
@@ -10,14 +13,11 @@ import { fs } from './util/fs'
 import keys from './util/keys'
 import origin from './util/origin'
 import * as settings from './util/settings'
-import Debug from 'debug'
 import pathHelpers from './util/path_helpers'
 import findSystemNode from './util/find_system_node'
+import { getProcessEnvVars } from './util/config'
 
 const debug = Debug('cypress:server:config')
-
-import { options, breakingOptions } from '@packages/config/src/options'
-import { getProcessEnvVars } from './util/config'
 
 export const RESOLVED_FROM = ['plugin', 'env', 'default', 'runtime', 'config'] as const
 
@@ -36,8 +36,6 @@ export const CYPRESS_SPECIAL_ENV_VARS = [
   'RECORD_KEY',
 ]
 
-const dashesOrUnderscoresRe = /^(_-)+/
-
 // takes an array and creates an index object of [keyKey]: [valueKey]
 const createIndex = (arr, keyKey, valueKey) => {
   return _.reduce(arr, (memo, item) => {
@@ -49,13 +47,13 @@ const createIndex = (arr, keyKey, valueKey) => {
   }, {})
 }
 
-const publicConfigKeys = _(options).reject({ isInternal: true }).map('name').value()
-const breakingKeys = _.map(breakingOptions, 'name')
+const publicConfigKeys = configUtils.getPublicConfigKeys()
+const defaultValues: Record<string, any> = configUtils.getDefaultValues()
+
 const folders = _(options).filter({ isFolder: true }).map('name').value()
 const validationRules = createIndex(options, 'name', 'validation')
-const defaultValues: Record<string, any> = createIndex(options, 'name', 'defaultValue')
 
-const convertRelativeToAbsolutePaths = (projectRoot, obj, defaults = {}) => {
+const convertRelativeToAbsolutePaths = (projectRoot, obj) => {
   return _.reduce(folders, (memo, folder) => {
     const val = obj[folder]
 
@@ -66,18 +64,6 @@ const convertRelativeToAbsolutePaths = (projectRoot, obj, defaults = {}) => {
     return memo
   }
   , {})
-}
-
-const validateNoBreakingConfig = (cfg) => {
-  return _.each(breakingOptions, ({ name, errorKey, newName, isWarning }) => {
-    if (_.has(cfg, name)) {
-      if (isWarning) {
-        return errors.warning(errorKey, name, newName)
-      }
-
-      return errors.throw(errorKey, name, newName)
-    }
-  })
 }
 
 const validate = (cfg, onErr) => {
@@ -100,7 +86,7 @@ const validate = (cfg, onErr) => {
 
 const validateFile = (file) => {
   return (settings) => {
-    return validate(settings, (errMsg) => {
+    return configUtils.validate(settings, (errMsg) => {
       return errors.throw('SETTINGS_VALIDATION_ERROR', file, errMsg)
     })
   }
@@ -178,21 +164,11 @@ export const utils = {
   },
 }
 
-export function getConfigKeys () {
-  return publicConfigKeys
-}
-
 export function isValidCypressInternalEnvValue (value) {
   // names of config environments, see "config/app.yml"
   const names = ['development', 'test', 'staging', 'production']
 
   return _.includes(names, value)
-}
-
-export function allowed (obj = {}) {
-  const propertyNames = publicConfigKeys.concat(breakingKeys)
-
-  return _.pick(obj, propertyNames)
 }
 
 export function get (projectRoot, options = {}) {
@@ -215,8 +191,7 @@ export function set (obj: Record<string, any> = {}) {
   debug('setting config object')
   let { projectRoot, projectName, config, envFile, options } = obj
 
-  // just force config to be an object
-  // so we dont have to do as much
+  // just force config to be an object so we dont have to do as much
   // work in our tests
   if (config == null) {
     config = {}
@@ -224,8 +199,7 @@ export function set (obj: Record<string, any> = {}) {
 
   debug('config is %o', config)
 
-  // flatten the object's properties
-  // into the master config object
+  // flatten the object's properties into the master config object
   config.envFile = envFile
   config.projectRoot = projectRoot
   config.projectName = projectName
@@ -242,7 +216,7 @@ export function mergeDefaults (config: Record<string, any> = {}, options: Record
   debug('merged config with options, got %o', config)
 
   _
-  .chain(allowed(options))
+  .chain(configUtils.allowed(options))
   .omit('env')
   .omit('browsers')
   .each((val, key) => {
@@ -259,13 +233,13 @@ export function mergeDefaults (config: Record<string, any> = {}, options: Record
     config.baseUrl = url.replace(/\/\/+$/, '/')
   }
 
-  _.defaults(config, defaultValues)
+  _.defaultsDeep(config, defaultValues)
 
   // split out our own app wide env from user env variables
   // and delete envFile
   config.env = parseEnv(config, options.env, resolved)
 
-  config.cypressEnv = process.env['CYPRESS_INTERNAL_ENV']
+  config.cypressEnv = process.env.CYPRESS_INTERNAL_ENV
   debug('using CYPRESS_INTERNAL_ENV %s', config.cypressEnv)
   if (!isValidCypressInternalEnvValue(config.cypressEnv)) {
     errors.throw('INVALID_CYPRESS_INTERNAL_ENV', config.cypressEnv)
@@ -278,8 +252,7 @@ export function mergeDefaults (config: Record<string, any> = {}, options: Record
     // dont ever watch for file changes
     config.watchForFileChanges = false
 
-    // and forcibly reset numTestsKeptInMemory
-    // to zero
+    // and forcibly reset numTestsKeptInMemory to zero
     config.numTestsKeptInMemory = 0
   }
 
@@ -289,18 +262,17 @@ export function mergeDefaults (config: Record<string, any> = {}, options: Record
     config = setUrls(config)
   }
 
-  config = setAbsolutePaths(config, defaultValues)
+  config = setAbsolutePaths(config)
 
   config = setParentTestsPaths(config)
 
-  // validate config again here so that we catch
-  // configuration errors coming from the CLI overrides
-  // or env var overrides
-  validate(config, (errMsg) => {
+  // validate config again here so that we catch configuration errors coming from the CLI
+  // overrides or env var overrides
+  configUtils.validate(_.omit(config, ['browsers']), (errMsg) => {
     return errors.throw('CONFIG_VALIDATION_ERROR', errMsg)
   })
 
-  validateNoBreakingConfig(config)
+  configUtils.validateNoBreakingConfig(config, errors.warning, errors.throw)
 
   return setSupportFileAndFolder(config)
   .then(setPluginsFile)
@@ -376,8 +348,7 @@ export function updateWithPluginValues (cfg, overrides) {
     debug('user browser list %o', userBrowserList)
   }
 
-  // for each override go through
-  // and change the resolved values of cfg
+  // for each override go through and change the resolved values of cfg
   // to point to the plugin
   if (diffs) {
     debug('resolved config before diffs %o', cfg.resolved)
@@ -631,7 +602,7 @@ export function setParentTestsPaths (obj) {
   return obj
 }
 
-export function setAbsolutePaths (obj, defaults) {
+export function setAbsolutePaths (obj) {
   let pr
 
   obj = _.clone(obj)
@@ -644,7 +615,7 @@ export function setAbsolutePaths (obj, defaults) {
     // obj.fileServerFolder = path.resolve(pr, obj.fileServerFolder)
 
     // and do the same for all the rest
-    _.extend(obj, convertRelativeToAbsolutePaths(pr, obj, defaults))
+    _.extend(obj, convertRelativeToAbsolutePaths(pr, obj))
   }
 
   return obj
@@ -689,26 +660,13 @@ export function parseEnv (cfg: Record<string, any>, envCLI: Record<string, any>,
 
   envCLI = envCLI != null ? envCLI : {}
 
-  const matchesConfigKey = function (key) {
-    if (_.has(defaultValues, key)) {
-      return key
-    }
-
-    key = key.toLowerCase().replace(dashesOrUnderscoresRe, '')
-    key = _.camelCase(key)
-
-    if (_.has(defaultValues, key)) {
-      return key
-    }
-  }
-
   const configFromEnv = _.reduce(envProc, (memo: string[], val, key) => {
     let cfgKey: string
 
-    cfgKey = matchesConfigKey(key)
+    cfgKey = configUtils.matchesConfigKey(key)
 
     if (cfgKey) {
-      // only change the value if it hasnt been
+      // only change the value if it hasn't been
       // set by the CLI. override default + config
       if (resolved[cfgKey] !== 'cli') {
         cfg[cfgKey] = val

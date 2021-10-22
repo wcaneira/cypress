@@ -988,18 +988,6 @@ describe('lib/config', () => {
     })
   })
 
-  context('.getConfigKeys', () => {
-    beforeEach(function () {
-      this.includes = (key) => {
-        expect(config.getConfigKeys()).to.include(key)
-      }
-    })
-
-    it('includes blockHosts', function () {
-      return this.includes('blockHosts')
-    })
-  })
-
   context('.resolveConfigValues', () => {
     beforeEach(function () {
       this.expected = function (obj) {
