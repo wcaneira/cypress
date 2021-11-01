@@ -15,8 +15,6 @@ const logger = require('../logger')
 const xvfb = require('../exec/xvfb')
 const state = require('./state')
 
-const VERIFY_TEST_RUNNER_TIMEOUT_MS = 30000
-
 const checkExecutable = (binaryDir) => {
   const executable = state.getPathToExecutable(binaryDir)
 
@@ -258,7 +256,7 @@ const start = (options = {}) => {
     dev: false,
     force: false,
     welcomeMessage: true,
-    smokeTestTimeout: VERIFY_TEST_RUNNER_TIMEOUT_MS,
+    smokeTestTimeout: process.env.CYPRESS_VERIFY_TIMEOUT || 30000,
   })
 
   if (options.dev) {
@@ -377,6 +375,5 @@ const needsSandbox = () => isLinuxLike()
 
 module.exports = {
   start,
-  VERIFY_TEST_RUNNER_TIMEOUT_MS,
   needsSandbox,
 }

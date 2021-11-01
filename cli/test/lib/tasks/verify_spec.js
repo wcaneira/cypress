@@ -68,8 +68,40 @@ context('lib/tasks/verify', () => {
     Stdout.restore()
   })
 
-  it('has verify task timeout', () => {
-    expect(verify.VERIFY_TEST_RUNNER_TIMEOUT_MS).to.be.gt(10000)
+  describe('enforces a timeout', () => {
+    beforeEach(() => {
+      // make it think the executable exists
+      createfs({
+        alreadyVerified: false,
+        executable: mockfs.file({ mode: 0o777 }),
+        packageVersion,
+      })
+
+      util.exec.resolves({
+        stdout: '222',
+        stderr: '',
+      })
+    })
+
+    afterEach(() => {
+      process.env.CYPRESS_VERIFY_TIMEOUT = ''
+    })
+
+    it('via a default', () => {
+      return verify.start()
+      .then(() => {
+        expect(util.exec).to.be.calledWithMatch(sinon.match.any, sinon.match.any, sinon.match.has('timeout', 30000))
+      })
+    })
+
+    it('via an environment variable', () => {
+      process.env.CYPRESS_VERIFY_TIMEOUT = 150000
+
+      return verify.start()
+      .then(() => {
+        expect(util.exec).to.be.calledWithMatch(sinon.match.any, sinon.match.any, sinon.match.has('timeout', 150000))
+      })
+    })
   })
 
   it('logs error and exits when no version of Cypress is installed', () => {
